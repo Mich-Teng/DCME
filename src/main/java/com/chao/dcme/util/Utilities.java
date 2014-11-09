@@ -54,6 +54,7 @@ public class Utilities {
 
     public static String getLocalIPAddr() throws UnknownHostException{
         InetAddress addr = InetAddress.getLocalHost();
+        System.out.println(addr);
         return addr.getHostAddress();
     }
 
