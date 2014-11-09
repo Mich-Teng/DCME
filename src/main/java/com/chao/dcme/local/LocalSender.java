@@ -33,7 +33,7 @@ public class LocalSender {
         // add it into candidate invitee
         LocalInfo.addInviteeCandidate(ip, port);
         // send it to the target
-        Utilities.send(Utilities.serialize(msg), ip, port);
+        Utilities.send(Utilities.serialize(msg.packAsMap()), ip, port);
     }
 
     public static void sendLockRequestMsg() {
@@ -87,6 +87,12 @@ public class LocalSender {
         LocalInfo.updateSeqNo();
         SeqEventMsg msg = new SeqEventMsg(LocalInfo.getLocalIdentifier(), Event.CHAT_MESSAGE, text.getBytes(),
                 LocalInfo.getSeqNo());
-        FloodProtocol.floodMsg(Utilities.serialize(msg));
+        FloodProtocol.floodMsg(Utilities.serialize(msg.packAsMap()));
     }
+
+    public static void sendConfirmMsg(byte[] content) {
+        EventMsg msg = new EventMsg(LocalInfo.getLocalIdentifier(), Event.CONFIRM, content);
+        FloodProtocol.floodMsg(Utilities.serialize(msg.packAsMap()));
+    }
+
 }

@@ -1,5 +1,7 @@
 package com.chao.dcme.local;
 
+import java.io.Serializable;
+
 /**
  * ***************************************************************
  * Author: Chao Teng
@@ -10,7 +12,7 @@ package com.chao.dcme.local;
  * ****************************************************************
  */
 
-public class Peer {
+public class Peer implements Serializable {
     String ip;
     int port;
 

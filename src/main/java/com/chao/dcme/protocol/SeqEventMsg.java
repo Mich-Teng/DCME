@@ -1,6 +1,7 @@
 package com.chao.dcme.protocol;
 
 import java.io.Serializable;
+import java.util.Map;
 
 /**
  * ***************************************************************
@@ -22,6 +23,12 @@ public class SeqEventMsg extends EventMsg implements Serializable {
 
     public SeqEventMsg(int seqNo) {
         this.seqNo = seqNo;
+    }
+
+    public Map<String, Object> packAsMap() {
+        Map<String, Object> map = super.packAsMap();
+        map.put("SeqNo", seqNo);
+        return map;
     }
 
 }

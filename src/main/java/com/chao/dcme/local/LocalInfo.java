@@ -36,12 +36,21 @@ public class LocalInfo {
         try {
             localIp = Utilities.getLocalIPAddr();
             localIdentifier = Utilities.getLocalHostname() + ":" + Utilities.getRandomNumber(100000000);
-            socket = new DatagramSocket(localPort);
+            for (int i = Config.LOWER_BOUND_OF_PORT; i <= Config.UPPER_BOUND_OF_PORT; i++) {
+                try {
+                    socket = new DatagramSocket(i);
+                    localPort = i;
+                    break;
+                } catch (SocketException exception) {
+                }
+            }
+            if (socket == null)
+                throw new SocketException();
         } catch (UnknownHostException e) {
             e.printStackTrace();
             System.exit(ExitCode.LOCALIP_NOT_FOUND);
         } catch (SocketException e) {
-            e.printStackTrace();
+            System.out.println("All the ports have been bounded");
             System.exit(ExitCode.BINDING_SOCKET_ERROR);
         }
     }
@@ -104,5 +113,17 @@ public class LocalInfo {
 
     public static DatagramSocket getSocket() {
         return socket;
+    }
+
+    public static void mergePeers(Map<String, Peer> map) {
+        for (String key : map.keySet()) {
+            if (!peers.containsKey(key)) {
+                peers.put(key, map.get(key));
+            }
+        }
+    }
+
+    public static Set<String> getInviteeCandidate() {
+        return inviteeCandidate;
     }
 }

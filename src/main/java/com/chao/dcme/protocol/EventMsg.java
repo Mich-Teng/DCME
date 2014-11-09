@@ -1,6 +1,8 @@
 package com.chao.dcme.protocol;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * ***************************************************************
@@ -24,6 +26,14 @@ public class EventMsg implements Serializable {
     }
 
     public EventMsg() {
+    }
+
+    public Map<String, Object> packAsMap() {
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("Origin", origin);
+        map.put("Event", eventType);
+        map.put("Content", content);
+        return map;
     }
 
     public String getOrigin() {

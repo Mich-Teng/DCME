@@ -17,9 +17,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * ***************************************************************
@@ -43,6 +40,13 @@ public class MainFrame {
     private LocalInfo localInfo = new LocalInfo();
 
 
+    public void appendLog(String text) {
+        logTextArea.append(text + "\n");
+    }
+
+    public void appendChatMsg(String text) {
+        chatArea.append(text + "\n");
+    }
     private void initTextArea() {
         textArea.setFont(new Font("Serif", Font.PLAIN, 15));
         // only when new a document or open a new file or invited by
@@ -77,6 +81,7 @@ public class MainFrame {
         dispArea.setOpaque(true);
         // set the font of the text
         dispArea.setFont(new Font("Serif", Font.PLAIN, 15));
+        dispArea.setEditable(false);
     }
 
     private ActionListener createNewDocListener() {
@@ -133,10 +138,14 @@ public class MainFrame {
             public void actionPerformed(ActionEvent e) {
                 // send invitation to specific ip and port
                 String ipPort = JOptionPane.showInputDialog("Please input ip:port");
+                if (ipPort == null)
+                    return;
                 String[] strs = ipPort.split(":");
-                if (strs.length != 2)
+                if (strs.length != 2) {
                     JOptionPane.showMessageDialog(null, "Invalid Format of Ip and Port",
                             "Error!", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
                 try {
                     LocalSender.sendInvitationMsg(strs[0], Integer.parseInt(strs[1]),
                             Event.INVITATION);
@@ -222,15 +231,16 @@ public class MainFrame {
         controlArea.setLayout(new GridBagLayout());
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.fill = GridBagConstraints.HORIZONTAL;
-        String[] funcs = {"New Document", "Open File", "Save File", "Invite", "Invite_RO",
+        String[] funcs = {"New", "Open", "Save", "Invite", "Invite_RO",
                 "Lock", "Unlock", "Kick Out"};
         ActionListener[] listeners = {createNewDocListener(), createOpenFileListener(), createSaveFileListener(),
                 createInviteListener(), createInviteROListener(), createLockListener(), createUnlockListener(),
                 createKickOutListener()};
+        constraints.weightx = 1.0;
         for (int i = 0; i < funcs.length; i++) {
             JButton button = new JButton(funcs[i]);
             button.setBackground(Color.WHITE);
-            constraints.weightx = 1.0 / 3;
+            button.setFont(new java.awt.Font("TimesRoman", Font.BOLD, 12));
             constraints.gridx = i % 3;
             constraints.gridy = i / 3;
             constraints.ipady = 0;
@@ -257,6 +267,7 @@ public class MainFrame {
         controlArea.add(jScrollPaneLog, constraints);
         logTextArea.setText("My Identifier: " + LocalInfo.getLocalIdentifier() + "\nMy Ip: " +
                 LocalInfo.getLocalIp() + "\nMy Port: " + LocalInfo.getLocalPort() + "\n");
+        logTextArea.setEditable(false);
 
         // init chat area
         constraints.gridy = 25;
@@ -277,6 +288,7 @@ public class MainFrame {
         constraints.gridheight = 18;
         constraints.gridy = 26;
         controlArea.add(jScrollPaneChat, constraints);
+        chatArea.setEditable(false);
 
         final JTextField inputWindow = new JTextField();
         constraints.weighty = 0;
@@ -334,25 +346,40 @@ public class MainFrame {
         frame.setLocation(screenSize.width / 2 - windowWidth / 2, screenSize.height / 2 - windowHeight / 2);
 
         // set frame layout
-        frame.setLayout(new GridLayout(1, 3, 5, 5));
+        frame.setLayout(new GridBagLayout());
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.fill = GridBagConstraints.BOTH;
+        constraints.gridx = 0;
+        constraints.gridy = 0;
+        constraints.gridheight = GridBagConstraints.REMAINDER;
+        constraints.weightx = 10;
+        constraints.weighty = 1;
+        //frame.setLayout(new GridLayout(1, 3, 5, 5));
         // set first component: edit text area
         initTextArea();
         JScrollPane jScrollPaneText = new JScrollPane();
         jScrollPaneText.add(textArea);
         jScrollPaneText.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         jScrollPaneText.setViewportView(textArea);
-        frame.add(jScrollPaneText);
+
+        frame.add(jScrollPaneText, constraints);
         // set second component: display part of markdown file
+
+        constraints.weightx = 2;
         initDispArea();
         JScrollPane jScrollPaneDisp = new JScrollPane();
         jScrollPaneDisp.add(dispArea);
         jScrollPaneDisp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         jScrollPaneDisp.setViewportView(dispArea);
-        frame.add(jScrollPaneDisp);
-        // set third component: control area
+        constraints.gridx = 1;
+        frame.add(jScrollPaneDisp, constraints);
 
+        // set third component: control area
+        constraints.weightx = 10;
         initControlArea();
-        frame.add(controlArea);
+        constraints.gridx = 2;
+        constraints.gridwidth = GridBagConstraints.REMAINDER;
+        frame.add(controlArea, constraints);
 
         refreshDispArea();
     }
