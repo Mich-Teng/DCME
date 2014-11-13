@@ -9,7 +9,9 @@ import com.chao.dcme.util.Utilities;
 import com.chao.dcme.util.VoteTool;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * ***************************************************************
@@ -23,6 +25,7 @@ import java.util.Map;
 
 public class LocalSender {
     public static void sendInvitationMsg(String ip, int port, final int type) throws InvalidEventException {
+        // todo send current context to the user
         if (type != Event.INVITATION && type != Event.INVITATION_RO)
             throw new InvalidEventException("Invalid event type: " + type);
         // get the content of serialized table info
@@ -41,23 +44,21 @@ public class LocalSender {
         VoteTool.refresh(LocalInfo.getPeers().keySet());
         SeqEventMsg msg = new SeqEventMsg(LocalInfo.getLocalIdentifier(), Event.LOCK_REQUEST, new byte[1],
                 LocalInfo.getSeqNo());
-        FloodProtocol.floodMsg(Utilities.serialize(msg));
+        FloodProtocol.floodMsg(Utilities.serialize(msg.packAsMap()));
     }
 
-    /**
-     * send msg point to point
-     */
     public static void sendLockCommandMsg() {
         LocalInfo.updateSeqNo();
         SeqEventMsg msg = new SeqEventMsg(LocalInfo.getLocalIdentifier(), Event.LOCK_COMMAND, new byte[1],
                 LocalInfo.getSeqNo());
+        FloodProtocol.floodMsg(Utilities.serialize(msg.packAsMap()));
     }
 
     public static void sendUnlockMsg() {
         LocalInfo.updateSeqNo();
-        SeqEventMsg msg = new SeqEventMsg(LocalInfo.getLocalIdentifier(), Event.LOCK_REQUEST_RETRIEVAL,
+        SeqEventMsg msg = new SeqEventMsg(LocalInfo.getLocalIdentifier(), Event.UNLOCK,
                 new byte[1], LocalInfo.getSeqNo());
-        FloodProtocol.floodMsg(Utilities.serialize(msg));
+        FloodProtocol.floodMsg(Utilities.serialize(msg.packAsMap()));
 
     }
 
@@ -70,17 +71,19 @@ public class LocalSender {
         LocalInfo.updateSeqNo();
         SeqEventMsg msg = new SeqEventMsg(LocalInfo.getLocalIdentifier(), Event.KICKOUT_COMMAND,
                 target, LocalInfo.getSeqNo());
-        FloodProtocol.floodMsg(Utilities.serialize(msg));
+        FloodProtocol.floodMsg(Utilities.serialize(msg.packAsMap()));
     }
 
     public static void sendKickoutRequestMsg(String target) {
         if (target == null || target.equals(""))
             return;
         LocalInfo.updateSeqNo();
-        VoteTool.refresh(LocalInfo.getPeers().keySet());
+        Set<String> set = new HashSet<String>(LocalInfo.getPeers().keySet());
+        set.remove(target);
+        VoteTool.refresh(set);
         SeqEventMsg msg = new SeqEventMsg(LocalInfo.getLocalIdentifier(), Event.KICKOUT_REQEUST,
                 target.getBytes(), LocalInfo.getSeqNo());
-        FloodProtocol.floodMsg(Utilities.serialize(msg));
+        FloodProtocol.floodMsg(Utilities.serialize(msg.packAsMap()));
     }
 
     public static void sendChatMsg(String text) {

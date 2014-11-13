@@ -13,4 +13,5 @@ package com.chao.dcme.exception;
 public class ExitCode {
     public static final int LOCALIP_NOT_FOUND = 1;
     public static final int BINDING_SOCKET_ERROR = 2;
+    public static final int KICKED_OUT = 3;
 }

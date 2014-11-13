@@ -31,6 +31,9 @@ public class LocalInfo {
     // default local port
     private static int localPort = 12345;
     private static DatagramSocket socket = null;
+    private static boolean isRO = false;
+    // record the recent person who wants to lock me
+    private static String locker = null;
 
     public LocalInfo() {
         try {
@@ -126,4 +129,21 @@ public class LocalInfo {
     public static Set<String> getInviteeCandidate() {
         return inviteeCandidate;
     }
+
+    public static boolean isIsRO() {
+        return isRO;
+    }
+
+    public static void setIsRO(boolean isRO) {
+        LocalInfo.isRO = isRO;
+    }
+
+    public static String getLocker() {
+        return locker;
+    }
+
+    public static void setLocker(String locker) {
+        LocalInfo.locker = locker;
+    }
+
 }

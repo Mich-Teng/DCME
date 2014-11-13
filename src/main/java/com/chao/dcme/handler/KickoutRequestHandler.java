@@ -4,7 +4,6 @@ import com.chao.dcme.MainFrame;
 import com.chao.dcme.local.LocalInfo;
 import com.chao.dcme.local.LocalSender;
 import com.chao.dcme.local.Peer;
-import com.chao.dcme.protocol.Event;
 import com.chao.dcme.util.Utilities;
 
 import javax.swing.*;
@@ -14,23 +13,26 @@ import java.util.Map;
 /**
  * ***************************************************************
  * Author: Chao Teng
- * Date: 2014-11-09 17:18.
+ * Date: 2014-11-13 10:29.
  * Package: com.chao.dcme.handler
  * Description:
  * Welcome to contact chao.teng@yale.edu if you have any questions.
  * ****************************************************************
  */
 
-public class InvitationMsgHandler implements Handler {
+public class KickoutRequestHandler implements Handler {
     @Override
     public void execute(Map<String, Object> map, MainFrame frame) {
-        frame.appendLog("Receiving invitation from " + map.get("Origin"));
-        int choice = JOptionPane.showConfirmDialog(null, "Confirm Invitation?");
+        frame.appendLog("Receiving kickout request from " + map.get("Origin"));
+        String target = new String((byte[]) map.get("Content"));
+        // if target is myself, don't vote, just return
+        if (target.equals(LocalInfo.getLocalIdentifier()))
+            return;
+        int choice = JOptionPane.showConfirmDialog(null, "Confirm Kickout " + target + "?");
         Map<String, Object> reply = new HashMap<String, Object>();
         Integer event = (Integer) map.get("Event");
         reply.put("Event", event);
-        reply.put("IP", LocalInfo.getLocalIp());
-        reply.put("Port", LocalInfo.getLocalPort());
+        reply.put("Target", target);
         if (choice == JOptionPane.YES_OPTION) {
             reply.put("Reply", true);
             // confirm the invitation
@@ -39,12 +41,6 @@ public class InvitationMsgHandler implements Handler {
             LocalInfo.mergePeers(peers);
         } else {
             reply.put("Reply", false);
-        }
-        if (event == Event.INVITATION_RO) {
-            LocalInfo.setIsRO(true);
-            frame.setReadOnly();
-        } else {
-            frame.setWritable();
         }
         LocalSender.sendConfirmMsg(Utilities.serialize(reply));
     }

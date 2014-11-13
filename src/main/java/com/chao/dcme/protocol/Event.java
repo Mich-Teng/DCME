@@ -19,7 +19,6 @@ public class Event {
     public static final int KICKOUT_COMMAND = 5;
     public static final int LOCK_REQUEST = 6;
     public static final int LOCK_COMMAND = 7;
-    public static final int LOCK_REQUEST_RETRIEVAL = 8;
-    public static final int UNLOCK = 9;
-    public static final int CONFIRM = 10;
+    public static final int UNLOCK = 8;
+    public static final int CONFIRM = 9;
 }

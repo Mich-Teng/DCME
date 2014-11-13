@@ -31,15 +31,13 @@ public class VoteTool {
      * @param key key
      * @return true if votes are complete
      */
-    public static boolean voteAndCheck(String key) {
+    public static void vote(String key) {
         if (votes.containsKey(key))
             votes.put(key, true);
-        Collection<Boolean> ret = votes.values();
-        return !ret.contains(false);
     }
 
     public static boolean isComplete() {
         Collection<Boolean> ret = votes.values();
-        return !ret.contains(false);
+        return ret.isEmpty() || !ret.contains(false);
     }
 }

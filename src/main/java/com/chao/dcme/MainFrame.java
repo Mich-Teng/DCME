@@ -1,11 +1,9 @@
 package com.chao.dcme;
 
 import com.chao.dcme.dialog.WaitingDialog;
+import com.chao.dcme.exception.ExitCode;
 import com.chao.dcme.exception.FileNotExistException;
-import com.chao.dcme.local.LocalInfo;
-import com.chao.dcme.local.LocalListener;
-import com.chao.dcme.local.LocalSender;
-import com.chao.dcme.local.PeerStatus;
+import com.chao.dcme.local.*;
 import com.chao.dcme.protocol.Event;
 import com.chao.dcme.util.Utilities;
 import com.chao.dcme.util.VoteTool;
@@ -17,6 +15,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.util.Map;
 
 /**
  * ***************************************************************
@@ -88,6 +87,10 @@ public class MainFrame {
         return new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                if (LocalInfo.getPeerStatus() != PeerStatus.UNKOWN) {
+                    JOptionPane.showMessageDialog(frame, "You have already been involved in a document!");
+                    return;
+                }
                 LocalInfo.setPeerStatus(PeerStatus.STARTER);
                 textArea.setEditable(true);
                 textArea.setText("");
@@ -96,14 +99,16 @@ public class MainFrame {
         };
     }
 
-    private void unblockTextArea() {
-        textArea.setEditable(true);
-    }
 
     private ActionListener createOpenFileListener() {
         return new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                if (LocalInfo.getPeerStatus() != PeerStatus.UNKOWN) {
+                    JOptionPane.showMessageDialog(frame, "You have already been involved in a document!");
+                    return;
+                }
+                LocalInfo.setPeerStatus(PeerStatus.STARTER);
                 JFileChooser fileChooser = new JFileChooser();
                 fileChooser.showOpenDialog(null);
                 String path = fileChooser.getSelectedFile().getAbsolutePath();
@@ -113,6 +118,7 @@ public class MainFrame {
                     refreshDispArea();
                 } catch (FileNotExistException exception) {
                     // TODO add into log window
+                    appendLog(exception.toString());
                     exception.printStackTrace();
                 }
             }
@@ -125,10 +131,24 @@ public class MainFrame {
             public void actionPerformed(ActionEvent e) {
                 JFileChooser fileChooser = new JFileChooser();
                 fileChooser.showSaveDialog(null);
+                if (fileChooser.getSelectedFile() == null)
+                    return;
                 String path = fileChooser.getSelectedFile().getAbsolutePath();
                 Utilities.writeFile(path, textArea.getText());
             }
         };
+    }
+
+    public void setReadOnly() {
+        textArea.setEditable(false);
+    }
+
+    public void setWritable() {
+        textArea.setEditable(true);
+    }
+
+    public void close() {
+        System.exit(ExitCode.KICKED_OUT);
     }
 
     private ActionListener createInviteListener() {
@@ -136,6 +156,11 @@ public class MainFrame {
         return new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                PeerStatus status = LocalInfo.getPeerStatus();
+                if (!(status == PeerStatus.STARTER || status == PeerStatus.INVITEE)) {
+                    JOptionPane.showMessageDialog(frame, "You have no authority to do that");
+                    return;
+                }
                 // send invitation to specific ip and port
                 String ipPort = JOptionPane.showInputDialog("Please input ip:port");
                 if (ipPort == null)
@@ -161,6 +186,11 @@ public class MainFrame {
         return new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                PeerStatus status = LocalInfo.getPeerStatus();
+                if (!(status == PeerStatus.STARTER || status == PeerStatus.INVITEE)) {
+                    JOptionPane.showMessageDialog(frame, "You have no authority to do that");
+                    return;
+                }
                 // send invitation to specific ip and port
                 // send invitation to specific ip and port
                 String ipPort = JOptionPane.showInputDialog("Please input ip:port");
@@ -183,6 +213,11 @@ public class MainFrame {
         return new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                PeerStatus status = LocalInfo.getPeerStatus();
+                if (!(status == PeerStatus.STARTER || status == PeerStatus.INVITEE)) {
+                    JOptionPane.showMessageDialog(frame, "You have no authority to do that");
+                    return;
+                }
                 // whether all of them confirm
                 LocalSender.sendLockRequestMsg();
                 // present a dialog to user to show lock request sent and open a timer to wait for others
@@ -202,8 +237,13 @@ public class MainFrame {
         return new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                PeerStatus status = LocalInfo.getPeerStatus();
+                if (!(status == PeerStatus.STARTER || status == PeerStatus.INVITEE)) {
+                    JOptionPane.showMessageDialog(frame, "You have no authority to do that");
+                    return;
+                }
                 LocalSender.sendUnlockMsg();
-                JOptionPane.showConfirmDialog(frame, "Unlock Request is sent!");
+                JOptionPane.showMessageDialog(frame, "Unlock Request is sent!");
             }
         };
     }
@@ -212,14 +252,31 @@ public class MainFrame {
         return new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String server = JOptionPane.showInputDialog("Please input the identifier of the server you want to kick out");
+                PeerStatus status = LocalInfo.getPeerStatus();
+                if (!(status == PeerStatus.STARTER || status == PeerStatus.INVITEE)) {
+                    JOptionPane.showMessageDialog(frame, "You have no authority to do that");
+                    return;
+                }
+                Map<String, Peer> peers = LocalInfo.getPeers();
+                Object[] possibleValues = new Object[peers.size()];
+                int i = 0;
+                for (String str : peers.keySet()) {
+                    possibleValues[i++] = str;
+                }
+                Object selectedValue = JOptionPane.showInputDialog(null,
+                        "Choose one", "Input",
+                        JOptionPane.INFORMATION_MESSAGE, null,
+                        possibleValues, null);
+                if (selectedValue == null)
+                    return;
+                String target = (String) selectedValue;
                 // kicked out and wait for their confirm
-                LocalSender.sendKickoutRequestMsg(server);
+                LocalSender.sendKickoutRequestMsg(target);
                 // present a dialog to user to show lock request sent and open a timer to wait for others
                 WaitingDialog dialog = new WaitingDialog(frame, true, "Waiting for other peers' confirm..");
                 if (VoteTool.isComplete()) {
                     JOptionPane.showMessageDialog(null, "Kickout Request Confirmed!");
-                    LocalSender.sendKickoutCommandMsg(server.getBytes());
+                    LocalSender.sendKickoutCommandMsg(target.getBytes());
                 } else {
                     JOptionPane.showMessageDialog(null, "Kickout Request Failed!");
                 }

@@ -1,10 +1,7 @@
 package com.chao.dcme.local;
 
 import com.chao.dcme.MainFrame;
-import com.chao.dcme.handler.ChatMsgHandler;
-import com.chao.dcme.handler.ConfirmMsgHandler;
-import com.chao.dcme.handler.Handler;
-import com.chao.dcme.handler.InvitationMsgHandler;
+import com.chao.dcme.handler.*;
 import com.chao.dcme.protocol.Event;
 import com.chao.dcme.util.Utilities;
 
@@ -52,5 +49,11 @@ public class LocalListener implements Runnable {
         handlers[Event.CHAT_MESSAGE] = new ChatMsgHandler();
         handlers[Event.INVITATION] = new InvitationMsgHandler();
         handlers[Event.CONFIRM] = new ConfirmMsgHandler();
+        handlers[Event.INVITATION_RO] = new InvitationMsgHandler();
+        handlers[Event.KICKOUT_REQEUST] = new KickoutRequestHandler();
+        handlers[Event.LOCK_COMMAND] = new LockCommandHandler();
+        handlers[Event.LOCK_REQUEST] = new LockRequestHandler();
+        handlers[Event.UNLOCK] = new UnlockCommandHandler();
+        handlers[Event.KICKOUT_COMMAND] = new KickoutCommandHandler();
     }
 }
