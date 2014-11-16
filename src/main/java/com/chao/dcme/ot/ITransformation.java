@@ -77,23 +77,26 @@ public class ITransformation {
             // the pos of prev deletion smaller than the current deletion range,
             // simply move original operation N characters left
             iret = new Deletion(dlen, pa - b.getDlen());
-        } else if (pb <= pa && pa + dlen <= pb + b.getDlen()) {
-            // pb's deletion range covers pa's deletion range
-            iret = new Deletion(0, pa);
-        } else if (pb <= pa && pa + dlen > pb + b.getDlen()) {
-            // a's rightside deletion range is greater than pb, so just
-            // start from pb and delete those more characters
-            iret = new Deletion(pa + dlen - (pb + b.getDlen()), pb);
-        } else if (pb > pa && pb + b.getDlen() >= pa + dlen) {
-            // a's start pos is smaller than b but b's rightside deletion range is
-            // greater than a, so simply delete the characters between pa and pb
-            iret = new Deletion(pb - pa, pa);
         } else {
-            // start from a and delete the character's which is not contained in b
-            // since a's range covers b's range
-            iret = new Deletion(dlen - b.getDlen(), pa);
+            if (pb <= pa && pa + dlen <= pb + b.getDlen()) {
+                // pb's deletion range covers pa's deletion range
+                iret = new Deletion(0, pa);
+            } else if (pb <= pa && pa + dlen > pb + b.getDlen()) {
+                // a's rightside deletion range is greater than pb, so just
+                // start from pb and delete those more characters
+                iret = new Deletion(pa + dlen - (pb + b.getDlen()), pb);
+            } else if (pb > pa && pb + b.getDlen() >= pa + dlen) {
+                // a's start pos is smaller than b but b's rightside deletion range is
+                // greater than a, so simply delete the characters between pa and pb
+                iret = new Deletion(pb - pa, pa);
+            } else {
+                // start from a and delete the character's which is not contained in b
+                // since a's range covers b's range
+                iret = new Deletion(dlen - b.getDlen(), pa);
+            }
+            // map iret ---> save a's parameters and a reference to b
+            saveLI(iret, a, b);
         }
-        saveLI(ire, a, b);
         return iret;
     }
 
