@@ -1,6 +1,7 @@
 package com.chao.dcme.local;
 
 import com.chao.dcme.exception.InvalidEventException;
+import com.chao.dcme.ot_char.OT;
 import com.chao.dcme.protocol.Event;
 import com.chao.dcme.protocol.EventMsg;
 import com.chao.dcme.protocol.FloodProtocol;
@@ -24,6 +25,22 @@ import java.util.Set;
  */
 
 public class LocalSender {
+    public static void sendOTMsg(int pos) {
+        OT.updateStateVec(OT.getId());
+        EventMsg eventMsg = new EventMsg(LocalInfo.getLocalIdentifier(), Event.OT_DELETION,
+                Utilities.serialize(pos));
+        FloodProtocol.floodMsg(Utilities.serialize(eventMsg.packAsMap()));
+    }
+
+    public static void sendOTMsg(int pos, char c) {
+        OT.updateStateVec(OT.getId());
+        Object[] arr = new Object[2];
+        arr[0] = pos;
+        arr[1] = c;
+        EventMsg eventMsg = new EventMsg(LocalInfo.getLocalIdentifier(), Event.OT_INSERTION,
+                Utilities.serialize(arr));
+        FloodProtocol.floodMsg(Utilities.serialize(eventMsg.packAsMap()));
+    }
     public static void sendInvitationMsg(String ip, int port, final int type) throws InvalidEventException {
         // todo send current context to the user
         if (type != Event.INVITATION && type != Event.INVITATION_RO)

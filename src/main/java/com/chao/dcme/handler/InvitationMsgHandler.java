@@ -4,6 +4,7 @@ import com.chao.dcme.MainFrame;
 import com.chao.dcme.local.LocalInfo;
 import com.chao.dcme.local.LocalSender;
 import com.chao.dcme.local.Peer;
+import com.chao.dcme.ot_char.OT;
 import com.chao.dcme.protocol.Event;
 import com.chao.dcme.util.Utilities;
 
@@ -37,6 +38,7 @@ public class InvitationMsgHandler implements Handler {
             byte[] content = (byte[]) map.get("Content");
             Map<String, Peer> peers = (Map<String, Peer>) Utilities.deserialize(content);
             LocalInfo.mergePeers(peers);
+            OT.init(LocalInfo.getPeers().size());
         } else {
             reply.put("Reply", false);
         }

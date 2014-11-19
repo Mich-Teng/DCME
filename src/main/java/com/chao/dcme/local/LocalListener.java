@@ -55,5 +55,7 @@ public class LocalListener implements Runnable {
         handlers[Event.LOCK_REQUEST] = new LockRequestHandler();
         handlers[Event.UNLOCK] = new UnlockCommandHandler();
         handlers[Event.KICKOUT_COMMAND] = new KickoutCommandHandler();
+        handlers[Event.OT_INSERTION] = new OTHandler();
+        handlers[Event.OT_DELETION] = new OTHandler();
     }
 }

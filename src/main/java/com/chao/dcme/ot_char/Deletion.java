@@ -1,32 +1,21 @@
-package com.chao.dcme.ot;
+package com.chao.dcme.ot_char;
 
 /**
  * ***************************************************************
  * Author: Chao Teng
- * Date: 2014-11-16 15:16.
- * Package: com.chao.dcme.ot
+ * Date: 2014-11-18 22:31.
+ * Package: com.chao.dcme.ot_char
  * Description:
  * Welcome to contact chao.teng@yale.edu if you have any questions.
  * ****************************************************************
  */
 
-public class Deletion {
-    // the length of deleted str
-    int dlen = 0;
-    // start pos of the deletion
-    int pos = 0;
+public class Deletion extends Op {
+    int pos;
 
-    public Deletion(int dlen, int pos) {
-        this.dlen = dlen;
+    public Deletion(StateVector stateVec, int pos) {
+        super(stateVec);
         this.pos = pos;
-    }
-
-    public int getDlen() {
-        return dlen;
-    }
-
-    public void setDlen(int dlen) {
-        this.dlen = dlen;
     }
 
     public int getPos() {
@@ -35,5 +24,10 @@ public class Deletion {
 
     public void setPos(int pos) {
         this.pos = pos;
+    }
+
+    @Override
+    public int getOpType() {
+        return OpType.DELETE_CHAR;
     }
 }

@@ -4,6 +4,7 @@ import com.chao.dcme.dialog.WaitingDialog;
 import com.chao.dcme.exception.ExitCode;
 import com.chao.dcme.exception.FileNotExistException;
 import com.chao.dcme.local.*;
+import com.chao.dcme.ot_char.OT;
 import com.chao.dcme.protocol.Event;
 import com.chao.dcme.util.Utilities;
 import com.chao.dcme.util.VoteTool;
@@ -59,17 +60,30 @@ public class MainFrame {
         textArea.addKeyListener(new KeyListener() {
             @Override
             public void keyTyped(KeyEvent e) {
-            }
-
-            @Override
-            public void keyPressed(KeyEvent arg0) {
-            }
-
-            @Override
-            public void keyReleased(KeyEvent arg0) {
                 // Operational Transformation
-                // TODO
+                // the state of text changes
+                if (!textArea.getText().equals(dispArea.getText())) {
+                    int pos = textArea.getCaretPosition();
+                    int keyCode = e.getKeyCode();
+                    if (keyCode == KeyEvent.VK_BACK_SPACE || keyCode == KeyEvent.VK_DELETE) {
+                        LocalSender.sendOTMsg(pos);
+                    } else {
+                        char c = e.getKeyChar();
+                        LocalSender.sendOTMsg(pos, c);
+                    }
+                }
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+
                 refreshDispArea();
+
             }
         });
     }
@@ -91,6 +105,7 @@ public class MainFrame {
                     JOptionPane.showMessageDialog(frame, "You have already been involved in a document!");
                     return;
                 }
+                OT.init(0);
                 LocalInfo.setPeerStatus(PeerStatus.STARTER);
                 textArea.setEditable(true);
                 textArea.setText("");
@@ -108,6 +123,7 @@ public class MainFrame {
                     JOptionPane.showMessageDialog(frame, "You have already been involved in a document!");
                     return;
                 }
+                OT.init(0);
                 LocalInfo.setPeerStatus(PeerStatus.STARTER);
                 JFileChooser fileChooser = new JFileChooser();
                 fileChooser.showOpenDialog(null);
