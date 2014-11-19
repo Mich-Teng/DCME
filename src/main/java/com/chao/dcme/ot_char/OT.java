@@ -97,19 +97,38 @@ public class OT {
         // remove the last $count operations
 
         Op eopNew = GOT(opNew);
+
+        System.out.println(eopNew.toString());
+
+
         List<Op> eolPrime = new ArrayList<Op>();
         eolPrime.add(eopNew);
-        eolPrime.add(IT(redo.get(0), eopNew));
-        for (int i = 1; i < redo.size(); i++) {
-            List<Op> his = new ArrayList<Op>(hBuffer.subList(m + 1, m + i));
-            Collections.reverse(his);
-            Op opTmp = LET(redo.get(i), his);
-            eolPrime.add(LIT(opTmp, eolPrime));
+        if (!redo.isEmpty()) {
+            eolPrime.add(IT(redo.get(0), eopNew));
+            for (int i = 1; i < redo.size(); i++) {
+                List<Op> his = new ArrayList<Op>(hBuffer.subList(m + 1, m + i));
+                Collections.reverse(his);
+                Op opTmp = LET(redo.get(i), his);
+                eolPrime.add(LIT(opTmp, eolPrime));
+            }
+            for (int i = 0; i < redo.size(); i++)
+                hBuffer.remove(hBuffer.size() - 1);
         }
-        for (int i = 0; i < redo.size(); i++)
-            hBuffer.remove(hBuffer.size() - 1);
         // redo eol Prime
         hBuffer.addAll(eolPrime);
+
+        // todo now just show it out
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < hBuffer.size(); i++) {
+            if (hBuffer.get(i).getOpType() == OpType.INSERT_CHAR) {
+                Insertion in = (Insertion) hBuffer.get(i);
+                builder.insert(in.getPos(), in.getC());
+            } else {
+                Deletion del = (Deletion) hBuffer.get(i);
+                builder.delete(del.pos, del.pos);
+            }
+        }
+        System.out.println(builder.toString());
     }
 
     private static Op IT(Op a, Op b) {
@@ -134,5 +153,13 @@ public class OT {
 
     public static void updateStateVec(int id) {
         stateVector.addOne(id);
+    }
+
+    public static StateVector getStateVector() {
+        return stateVector;
+    }
+
+    public static void setStateVector(StateVector stateVector) {
+        OT.stateVector = stateVector;
     }
 }

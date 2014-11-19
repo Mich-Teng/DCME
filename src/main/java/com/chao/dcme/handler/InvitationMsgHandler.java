@@ -39,6 +39,7 @@ public class InvitationMsgHandler implements Handler {
             Map<String, Peer> peers = (Map<String, Peer>) Utilities.deserialize(content);
             LocalInfo.mergePeers(peers);
             OT.init(LocalInfo.getPeers().size());
+            frame.setInitialText("");
         } else {
             reply.put("Reply", false);
         }

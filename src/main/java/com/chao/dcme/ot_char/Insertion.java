@@ -37,6 +37,11 @@ public class Insertion extends Op {
     }
 
     @Override
+    public String toString() {
+        return "Insert " + c + " at pos " + pos;
+    }
+
+    @Override
     public int getOpType() {
         return OpType.INSERT_CHAR;
     }

@@ -66,7 +66,7 @@ public class MainFrame {
                     int pos = textArea.getCaretPosition();
                     int keyCode = e.getKeyCode();
                     if (keyCode == KeyEvent.VK_BACK_SPACE || keyCode == KeyEvent.VK_DELETE) {
-                        LocalSender.sendOTMsg(pos);
+                        LocalSender.sendOTMsg(pos + 1);
                     } else {
                         char c = e.getKeyChar();
                         LocalSender.sendOTMsg(pos, c);
@@ -86,6 +86,11 @@ public class MainFrame {
 
             }
         });
+    }
+
+    public void setInitialText(String str) {
+        textArea.setText(str);
+        refreshDispArea();
     }
 
     private void initDispArea() {

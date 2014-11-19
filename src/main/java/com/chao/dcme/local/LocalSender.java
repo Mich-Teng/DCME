@@ -27,16 +27,20 @@ import java.util.Set;
 public class LocalSender {
     public static void sendOTMsg(int pos) {
         OT.updateStateVec(OT.getId());
+        Object[] arr = new Object[3];
+        arr[0] = OT.getStateVector();
+        arr[1] = pos;
         EventMsg eventMsg = new EventMsg(LocalInfo.getLocalIdentifier(), Event.OT_DELETION,
-                Utilities.serialize(pos));
+                Utilities.serialize(arr));
         FloodProtocol.floodMsg(Utilities.serialize(eventMsg.packAsMap()));
     }
 
     public static void sendOTMsg(int pos, char c) {
         OT.updateStateVec(OT.getId());
-        Object[] arr = new Object[2];
-        arr[0] = pos;
-        arr[1] = c;
+        Object[] arr = new Object[3];
+        arr[0] = OT.getStateVector();
+        arr[1] = pos;
+        arr[2] = c;
         EventMsg eventMsg = new EventMsg(LocalInfo.getLocalIdentifier(), Event.OT_INSERTION,
                 Utilities.serialize(arr));
         FloodProtocol.floodMsg(Utilities.serialize(eventMsg.packAsMap()));

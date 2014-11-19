@@ -30,4 +30,9 @@ public class Deletion extends Op {
     public int getOpType() {
         return OpType.DELETE_CHAR;
     }
+
+    @Override
+    public String toString() {
+        return "Delete at pos " + pos;
+    }
 }
