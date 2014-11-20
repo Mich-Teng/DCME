@@ -61,8 +61,15 @@ public class MainFrame {
             // todo research into the logic of these parts to see where to put code
             @Override
             public void keyTyped(KeyEvent e) {
-
+                int pos = textArea.getCaretPosition();
+                char c = e.getKeyChar();
+                if (c == '\b') {
+                    LocalSender.sendOTMsg(pos);
+                } else {
+                    LocalSender.sendOTMsg(pos, c);
+                }
             }
+
 
             @Override
             public void keyPressed(KeyEvent e) {
@@ -73,17 +80,9 @@ public class MainFrame {
             public void keyReleased(KeyEvent e) {
                 // Operational Transformation
                 // the state of text changes
-                if (!textArea.getText().equals(dispArea.getText())) {
-                    int pos = textArea.getCaretPosition();
-                    int keyCode = e.getKeyCode();
-                    if (keyCode == KeyEvent.VK_BACK_SPACE || keyCode == KeyEvent.VK_DELETE) {
-                        LocalSender.sendOTMsg(pos);
-                    } else {
-                        char c = e.getKeyChar();
-                        LocalSender.sendOTMsg(pos - 1, c);
-                    }
-                }
-                refreshDispArea();
+                if (!textArea.getText().equals(dispArea.getText()))
+                    refreshDispArea();
+
 
             }
         });
