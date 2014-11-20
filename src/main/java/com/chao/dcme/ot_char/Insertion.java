@@ -45,4 +45,9 @@ public class Insertion extends Op {
     public int getOpType() {
         return OpType.INSERT_CHAR;
     }
+
+    @Override
+    public Deletion inverse() {
+        return new Deletion(stateVec, pos);
+    }
 }

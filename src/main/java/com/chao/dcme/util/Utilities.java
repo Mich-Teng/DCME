@@ -20,22 +20,22 @@ import java.net.UnknownHostException;
  */
 
 public class Utilities {
-    public static String readFile(String filePath) throws FileNotExistException{
+    public static String readFile(String filePath) throws FileNotExistException {
         File file = new File(filePath);
         StringBuilder builder = new StringBuilder();
-        if(!file.exists()) {
+        if (!file.exists()) {
             throw new FileNotExistException(filePath);
         }
         try {
             BufferedReader buffer = new BufferedReader(new FileReader(file));
             String tmp = buffer.readLine();
-            while(tmp != null) {
+            while (tmp != null) {
                 builder.append(tmp);
                 tmp = buffer.readLine();
-                if(tmp != null)
+                if (tmp != null)
                     builder.append('\n');
             }
-        }catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return builder.toString();
@@ -47,12 +47,12 @@ public class Utilities {
             FileWriter writer = new FileWriter(file);
             writer.write(content);
             writer.close();
-        }catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public static String getLocalIPAddr() throws UnknownHostException{
+    public static String getLocalIPAddr() throws UnknownHostException {
         InetAddress addr = InetAddress.getLocalHost();
         System.out.println(addr);
         return addr.getHostAddress();
@@ -69,14 +69,16 @@ public class Utilities {
             DatagramPacket sendPacket = new DatagramPacket(content, content.length,
                     InetAddress.getByName(ip), port);
             socket.send(sendPacket);
-        }catch (UnknownHostException e) {
+        } catch (UnknownHostException e) {
             e.printStackTrace();
-        }catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     public static byte[] serialize(Object object) {
+        if (object == null)
+            return null;
         ObjectOutputStream oos = null;
         ByteArrayOutputStream baos = null;
         try {
@@ -104,7 +106,7 @@ public class Utilities {
     }
 
     public static int getRandomNumber(int range) {
-        return  (int)(Math.random()*range);
+        return (int) (Math.random() * range);
     }
 
 }

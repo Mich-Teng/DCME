@@ -5,6 +5,8 @@ import com.chao.dcme.ot_char.*;
 import com.chao.dcme.protocol.Event;
 import com.chao.dcme.util.Utilities;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -20,7 +22,7 @@ import java.util.Map;
 public class OTHandler implements Handler {
     @Override
     public void execute(Map<String, Object> map, MainFrame frame) {
-        frame.appendLog("OT Operation from " + map.get("Origin"));
+
         Integer event = (Integer) map.get("Event");
         Op op = null;
         Object[] arr = (Object[]) Utilities.deserialize((byte[]) map.get("Content"));
@@ -29,6 +31,17 @@ public class OTHandler implements Handler {
         } else {
             op = new Deletion((StateVector) arr[0], (Integer) arr[1]);
         }
-        OT.transform(op);
+        if (OT.isCausallyReady(op)) {
+            OT.transform(op);
+            frame.appendLog(op.toString() + " from " + map.get("Origin"));
+            // apply it in current doc
+            OT.checkPendingBuffer();
+            frame.setText(OT.getText());
+            frame.refreshDispArea();
+        } else {
+            // store in the buffer
+            OT.addIntoPendingBuffer(op);
+        }
+
     }
 }

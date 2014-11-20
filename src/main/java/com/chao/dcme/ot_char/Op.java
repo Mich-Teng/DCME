@@ -30,4 +30,10 @@ public class Op {
     public void setStateVec(StateVector stateVec) {
         this.stateVec = stateVec;
     }
+
+    public Op inverse() {
+        return null;
+    }
+
+    ;
 }

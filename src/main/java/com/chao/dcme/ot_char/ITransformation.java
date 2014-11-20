@@ -17,7 +17,7 @@ public class ITransformation {
         StateVector vec = i1.getStateVec();
         int p1 = i1.getPos(), p2 = i2.getPos();
         char c1 = i1.getC(), c2 = i2.getC();
-        if (p1 <= p2)
+        if (p1 < p2 || (p1 == p2 && vec.getId() < i2.getStateVec().getId()))
             return i1;
         return new Insertion(vec, p1 + 1, c1);
     }
@@ -47,7 +47,7 @@ public class ITransformation {
         else if (p1 > p2)
             return new Deletion(vec, p1 - 1);
         else
-            return d1;
+            return null;
     }
 
     public static Op IT(Op a, Op b) {
@@ -73,7 +73,7 @@ public class ITransformation {
             return op;
         Op tmp = op;
         for (int i = 0; i < ops.size(); i++) {
-            tmp = IT(op, ops.get(i));
+            tmp = IT(tmp, ops.get(i));
         }
         return tmp;
     }

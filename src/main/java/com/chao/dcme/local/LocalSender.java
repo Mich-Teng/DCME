@@ -1,6 +1,8 @@
 package com.chao.dcme.local;
 
 import com.chao.dcme.exception.InvalidEventException;
+import com.chao.dcme.ot_char.Deletion;
+import com.chao.dcme.ot_char.Insertion;
 import com.chao.dcme.ot_char.OT;
 import com.chao.dcme.protocol.Event;
 import com.chao.dcme.protocol.EventMsg;
@@ -27,6 +29,11 @@ import java.util.Set;
 public class LocalSender {
     public static void sendOTMsg(int pos) {
         OT.updateStateVec(OT.getId());
+        // add to our OT base
+        Deletion deletion = new Deletion(OT.getStateVector(), pos);
+        OT.apply(deletion);
+        OT.addIntoBuffer(deletion);
+        // prepare to send to other peers
         Object[] arr = new Object[3];
         arr[0] = OT.getStateVector();
         arr[1] = pos;
@@ -37,6 +44,9 @@ public class LocalSender {
 
     public static void sendOTMsg(int pos, char c) {
         OT.updateStateVec(OT.getId());
+        Insertion insertion = new Insertion(OT.getStateVector(), pos, c);
+        OT.apply(insertion);
+        OT.addIntoBuffer(insertion);
         Object[] arr = new Object[3];
         arr[0] = OT.getStateVector();
         arr[1] = pos;
@@ -45,14 +55,19 @@ public class LocalSender {
                 Utilities.serialize(arr));
         FloodProtocol.floodMsg(Utilities.serialize(eventMsg.packAsMap()));
     }
+
     public static void sendInvitationMsg(String ip, int port, final int type) throws InvalidEventException {
-        // todo send current context to the user
         if (type != Event.INVITATION && type != Event.INVITATION_RO)
             throw new InvalidEventException("Invalid event type: " + type);
         // get the content of serialized table info
         Map<String, Peer> map = new HashMap<String, Peer>(LocalInfo.getPeers());
         map.put(LocalInfo.getLocalIdentifier(), new Peer(LocalInfo.getLocalIp(), LocalInfo.getLocalPort()));
-        byte[] content = Utilities.serialize(map);
+        Object[] objects = new Object[4];
+        objects[0] = map;
+        objects[1] = OT.gethBuffer();
+        objects[2] = OT.getInitialStr();
+        objects[3] = OT.getPendingBuffer();
+        byte[] content = Utilities.serialize(objects);
         EventMsg msg = new EventMsg(LocalInfo.getLocalIdentifier(), type, content);
         // add it into candidate invitee
         LocalInfo.addInviteeCandidate(ip, port);

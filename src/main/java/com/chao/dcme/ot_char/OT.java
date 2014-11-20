@@ -1,9 +1,6 @@
 package com.chao.dcme.ot_char;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * ***************************************************************
@@ -22,11 +19,56 @@ public class OT {
     private static int id = 0;
     // state vector of this node
     private static StateVector stateVector = null;
+    private static List<Op> pendingBuffer = new ArrayList<Op>();
+
+    private static StringBuilder builder = null;
+    private static String initialStr = "";
 
 
-    public static void init(int idNum) {
+    public static void addIntoPendingBuffer(Op op) {
+        pendingBuffer.add(op);
+    }
+
+    public static void checkPendingBuffer() {
+        Iterator<Op> iter = pendingBuffer.iterator();
+        while (iter.hasNext()) {
+            Op op = iter.next();
+            if (isCausallyReady(op)) {
+                transform(op);
+                iter.remove();
+            }
+        }
+    }
+
+    public static String getText() {
+        return builder.toString();
+    }
+
+    /**
+     * check whether this op is causally ready
+     *
+     * @param op operation
+     * @return true or false
+     */
+    public static boolean isCausallyReady(Op op) {
+        StateVector vec = op.getStateVec();
+        int s = vec.getId();
+        if (!(vec.get(s) == stateVector.get(s) + 1))
+            return false;
+        for (int i = 0; i < stateVector.size(); i++) {
+            if (i != s && vec.get(i) > stateVector.get(i))
+                return false;
+        }
+        return true;
+    }
+
+    public static void init(int idNum, String str) {
         id = idNum;
         stateVector = new StateVector(id);
+        initialStr = str;
+        builder = new StringBuilder(str);
+        hBuffer.clear();
+        pendingBuffer.clear();
     }
 
     // whether Oa --> Ob
@@ -36,9 +78,18 @@ public class OT {
         return a.get(i) <= b.get(i);
     }
 
+    private static boolean isTotalOrdering(StateVector v1, StateVector v2) {
+        int sum1 = 0, sum2 = 0;
+        for (int i = 0; i < v1.size(); i++) {
+            sum1 += v1.get(i);
+            sum2 += v2.get(i);
+        }
+        return sum1 < sum2 || (sum1 == sum2 && v1.getId() < v2.getId());
+    }
+
     // Give a new causally ready operation Onew, and HB, return the excution form
     // of Onew. Intention-preserving scheme
-    private static Op GOT(Op newOp) {
+    public static Op GOT(Op newOp) {
         int k = 0, j = 0;
         StateVector vecNew = newOp.getStateVec();
         for (k = 0; k < hBuffer.size(); k++) {
@@ -66,19 +117,19 @@ public class OT {
         }
         if (eol.isEmpty()) {
             // all the operations between [k+1...m] are also independent with Onew
-            return LIT(newOp, hBuffer.subList(k, hBuffer.size() - 1));
+            return LIT(newOp, hBuffer.subList(k, hBuffer.size()));
         }
         List<Op> eolPrime = new ArrayList<Op>();
         for (int i = 0; i < eol.size(); i++) {
             int ci = c.get(i);
-            List<Op> his = new ArrayList<Op>(hBuffer.subList(k, ci - 1));
+            List<Op> his = new ArrayList<Op>(hBuffer.subList(k, ci));
             Collections.reverse(his);
             Op opTmp = LET(eol.get(i), his);
             eolPrime.add(LIT(opTmp, eolPrime));
         }
         Collections.reverse(eolPrime);
         Op onewPrime = LET(newOp, eolPrime);
-        return LIT(onewPrime, hBuffer.subList(k, hBuffer.size() - 1));
+        return LIT(onewPrime, hBuffer.subList(k, hBuffer.size()));
     }
 
     public static void transform(Op opNew) {
@@ -87,8 +138,11 @@ public class OT {
         for (int i = hBuffer.size() - 1; i >= 0; i--) {
             Op op = hBuffer.get(i);
             StateVector vecTmp = op.getStateVec();
-            if (!isDependent(vecTmp, vecNew, vecTmp.getId())) {
+            if (!isTotalOrdering(vecTmp, vecNew)) {
                 redo.add(op);
+                // undo the operations
+                Op inverse = op.inverse();
+                apply(inverse);
             } else {
                 break;
             }
@@ -97,9 +151,6 @@ public class OT {
         // remove the last $count operations
 
         Op eopNew = GOT(opNew);
-
-        System.out.println(eopNew.toString());
-
 
         List<Op> eolPrime = new ArrayList<Op>();
         eolPrime.add(eopNew);
@@ -114,21 +165,25 @@ public class OT {
             for (int i = 0; i < redo.size(); i++)
                 hBuffer.remove(hBuffer.size() - 1);
         }
+        // apply to the doc
+        for (Op tmp : eolPrime)
+            apply(tmp);
         // redo eol Prime
         hBuffer.addAll(eolPrime);
+    }
 
-        // todo now just show it out
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < hBuffer.size(); i++) {
-            if (hBuffer.get(i).getOpType() == OpType.INSERT_CHAR) {
-                Insertion in = (Insertion) hBuffer.get(i);
-                builder.insert(in.getPos(), in.getC());
-            } else {
-                Deletion del = (Deletion) hBuffer.get(i);
-                builder.delete(del.pos, del.pos);
-            }
+    public static void apply(Op op) {
+        if (op == null)
+            return;
+        if (op.getOpType() == OpType.INSERT_CHAR) {
+            Insertion insertion = (Insertion) op;
+            builder.insert(insertion.getPos(), insertion.getC());
+        } else {
+            Deletion deletion = (Deletion) op;
+            char c = builder.charAt(deletion.getPos());
+            deletion.setC(c);
+            builder.delete(deletion.getPos(), deletion.getPos()+1);
         }
-        System.out.println(builder.toString());
     }
 
     private static Op IT(Op a, Op b) {
@@ -161,5 +216,33 @@ public class OT {
 
     public static void setStateVector(StateVector stateVector) {
         OT.stateVector = stateVector;
+    }
+
+    public static List<Op> gethBuffer() {
+        return hBuffer;
+    }
+
+    public static void sethBuffer(List<Op> hBuffer) {
+        OT.hBuffer = hBuffer;
+    }
+
+    public static void addIntoBuffer(Op op) {
+        hBuffer.add(op);
+    }
+
+    public static String getInitialStr() {
+        return initialStr;
+    }
+
+    public static void setInitialStr(String initialStr) {
+        OT.initialStr = initialStr;
+    }
+
+    public static List<Op> getPendingBuffer() {
+        return pendingBuffer;
+    }
+
+    public static void setPendingBuffer(List<Op> pendingBuffer) {
+        OT.pendingBuffer = pendingBuffer;
     }
 }

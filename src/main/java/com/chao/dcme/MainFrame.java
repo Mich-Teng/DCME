@@ -4,7 +4,7 @@ import com.chao.dcme.dialog.WaitingDialog;
 import com.chao.dcme.exception.ExitCode;
 import com.chao.dcme.exception.FileNotExistException;
 import com.chao.dcme.local.*;
-import com.chao.dcme.ot_char.OT;
+import com.chao.dcme.ot_char.*;
 import com.chao.dcme.protocol.Event;
 import com.chao.dcme.util.Utilities;
 import com.chao.dcme.util.VoteTool;
@@ -58,20 +58,10 @@ public class MainFrame {
                 "Otherwise you should wait for someone inviting you.");
         // add listener
         textArea.addKeyListener(new KeyListener() {
+            // todo research into the logic of these parts to see where to put code
             @Override
             public void keyTyped(KeyEvent e) {
-                // Operational Transformation
-                // the state of text changes
-                if (!textArea.getText().equals(dispArea.getText())) {
-                    int pos = textArea.getCaretPosition();
-                    int keyCode = e.getKeyCode();
-                    if (keyCode == KeyEvent.VK_BACK_SPACE || keyCode == KeyEvent.VK_DELETE) {
-                        LocalSender.sendOTMsg(pos + 1);
-                    } else {
-                        char c = e.getKeyChar();
-                        LocalSender.sendOTMsg(pos, c);
-                    }
-                }
+
             }
 
             @Override
@@ -81,18 +71,42 @@ public class MainFrame {
 
             @Override
             public void keyReleased(KeyEvent e) {
-
+                // Operational Transformation
+                // the state of text changes
+                if (!textArea.getText().equals(dispArea.getText())) {
+                    int pos = textArea.getCaretPosition();
+                    int keyCode = e.getKeyCode();
+                    if (keyCode == KeyEvent.VK_BACK_SPACE || keyCode == KeyEvent.VK_DELETE) {
+                        LocalSender.sendOTMsg(pos);
+                    } else {
+                        char c = e.getKeyChar();
+                        LocalSender.sendOTMsg(pos - 1, c);
+                    }
+                }
                 refreshDispArea();
 
             }
         });
     }
 
-    public void setInitialText(String str) {
+    public void setText(String str) {
         textArea.setText(str);
         refreshDispArea();
     }
 
+
+    public void updateTextArea(Op op) {
+        StringBuilder builder = new StringBuilder(textArea.getText());
+        System.out.println(textArea.getText());
+        if (op.getOpType() == OpType.INSERT_CHAR) {
+            Insertion in = (Insertion) op;
+            builder.insert(in.getPos(), in.getC());
+        } else {
+            Deletion del = (Deletion) op;
+            builder.delete(del.getPos(), del.getPos() + 1);
+        }
+        textArea.setText(builder.toString());
+    }
     private void initDispArea() {
         dispArea.setBackground(Color.WHITE);
         // set the background opaque
@@ -110,7 +124,7 @@ public class MainFrame {
                     JOptionPane.showMessageDialog(frame, "You have already been involved in a document!");
                     return;
                 }
-                OT.init(0);
+                OT.init(0, "");
                 LocalInfo.setPeerStatus(PeerStatus.STARTER);
                 textArea.setEditable(true);
                 textArea.setText("");
@@ -128,7 +142,6 @@ public class MainFrame {
                     JOptionPane.showMessageDialog(frame, "You have already been involved in a document!");
                     return;
                 }
-                OT.init(0);
                 LocalInfo.setPeerStatus(PeerStatus.STARTER);
                 JFileChooser fileChooser = new JFileChooser();
                 fileChooser.showOpenDialog(null);
@@ -137,6 +150,7 @@ public class MainFrame {
                     String content = Utilities.readFile(path);
                     textArea.setText(content);
                     refreshDispArea();
+                    OT.init(0, content);
                 } catch (FileNotExistException exception) {
                     // TODO add into log window
                     appendLog(exception.toString());
@@ -400,7 +414,7 @@ public class MainFrame {
         });
     }
 
-    private void refreshDispArea() {
+    public void refreshDispArea() {
         MarkdownProcessor m = new MarkdownProcessor();
         dispArea.setContentType("text/html");
         dispArea.setText(String.format("<html>%s</html>", m.markdown(

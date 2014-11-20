@@ -12,6 +12,7 @@ package com.chao.dcme.ot_char;
 
 public class Deletion extends Op {
     int pos;
+    char c;
 
     public Deletion(StateVector stateVec, int pos) {
         super(stateVec);
@@ -34,5 +35,18 @@ public class Deletion extends Op {
     @Override
     public String toString() {
         return "Delete at pos " + pos;
+    }
+
+    public char getC() {
+        return c;
+    }
+
+    public void setC(char c) {
+        this.c = c;
+    }
+
+    @Override
+    public Op inverse() {
+        return new Insertion(stateVec, pos, c);
     }
 }

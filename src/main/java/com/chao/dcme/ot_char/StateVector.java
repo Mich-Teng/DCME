@@ -39,4 +39,8 @@ public class StateVector implements Serializable {
     public int getId() {
         return id;
     }
+
+    public int size() {
+        return 15;
+    }
 }
