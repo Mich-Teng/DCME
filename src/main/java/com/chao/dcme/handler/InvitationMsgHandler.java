@@ -39,15 +39,16 @@ public class InvitationMsgHandler implements Handler {
             // confirm the invitation
             byte[] content = (byte[]) map.get("Content");
             Object[] objects = (Object[]) Utilities.deserialize(content);
+            System.out.println(objects);
             Map<String, Peer> peers = (Map<String, Peer>) objects[0];
             LocalInfo.mergePeers(peers);
             // object[2] is initial str
-            OT.init(LocalInfo.getPeers().size(), (String) objects[2]);
+            frame.setText((String) objects[2]);
+            OT.init(LocalInfo.getPeers().size(), (String) objects[2], frame.getTextArea());
             OT.sethBuffer((List<Op>) objects[1]);
             OT.setPendingBuffer((List<Op>) objects[3]);
             for (Op tmp : (List<Op>) objects[1])
                 OT.apply(tmp);
-            frame.setText(OT.getText());
         } else {
             reply.put("Reply", false);
         }
@@ -58,5 +59,6 @@ public class InvitationMsgHandler implements Handler {
             frame.setWritable();
         }
         LocalSender.sendConfirmMsg(Utilities.serialize(reply));
+        frame.refreshDispArea();
     }
 }

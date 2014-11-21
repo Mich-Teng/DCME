@@ -1,6 +1,11 @@
 package com.chao.dcme.ot_char;
 
+
+import javax.swing.*;
+import javax.swing.text.Document;
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 /**
  * ***************************************************************
@@ -24,6 +29,8 @@ public class OT {
     private static StringBuilder builder = null;
     private static String initialStr = "";
 
+    private static JTextArea textArea = null;
+
 
     public static void addIntoPendingBuffer(Op op) {
         pendingBuffer.add(op);
@@ -36,13 +43,11 @@ public class OT {
             if (isCausallyReady(op)) {
                 transform(op);
                 iter.remove();
+                updateStateVec(op.getStateVec().getId());
             }
         }
     }
 
-    public static String getText() {
-        return builder.toString();
-    }
 
     /**
      * check whether this op is causally ready
@@ -62,13 +67,14 @@ public class OT {
         return true;
     }
 
-    public static void init(int idNum, String str) {
+    public static void init(int idNum, String str, JTextArea area) {
         id = idNum;
         stateVector = new StateVector(id);
         initialStr = str;
         builder = new StringBuilder(str);
         hBuffer.clear();
         pendingBuffer.clear();
+        textArea = area;
     }
 
     // whether Oa --> Ob
@@ -173,16 +179,29 @@ public class OT {
     }
 
     public static void apply(Op op) {
+        Document doc = textArea.getDocument();
+        int pos = textArea.getCaretPosition();
         if (op == null)
             return;
-        if (op.getOpType() == OpType.INSERT_CHAR) {
-            Insertion insertion = (Insertion) op;
-            builder.insert(insertion.getPos(), insertion.getC());
-        } else {
-            Deletion deletion = (Deletion) op;
-            char c = builder.charAt(deletion.getPos());
-            deletion.setC(c);
-            builder.delete(deletion.getPos(), deletion.getPos()+1);
+        try {
+            if (op.getOpType() == OpType.INSERT_CHAR) {
+                Insertion insertion = (Insertion) op;
+                //builder.insert(insertion.getPos(), insertion.getC());
+                doc.insertString(insertion.getPos(), "" + insertion.getC(), null);
+                if (insertion.getPos() <= pos) {
+                    textArea.setCaretPosition(pos + 1);
+                }
+            } else {
+                Deletion deletion = (Deletion) op;
+                char c = textArea.getText().charAt(deletion.getPos());
+                deletion.setC(c);
+                // builder.delete(deletion.getPos(), deletion.getPos() + 1);
+                doc.remove(deletion.getPos(), 1);
+                if (deletion.getPos() < pos)
+                    textArea.setCaretPosition(pos - 1);
+            }
+        } catch (Exception e) {
+            System.out.println(e);
         }
     }
 

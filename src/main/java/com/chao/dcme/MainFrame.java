@@ -52,19 +52,21 @@ public class MainFrame {
         // only when new a document or open a new file or invited by
         // others can be edited
         textArea.setEditable(false);
+
         textArea.setLineWrap(true);
         textArea.setText("#The text window is currently locked.\n\n If you want to create a New document," +
                 "please press new Document.\n\n If you want to Open Document, please press open document.\n\n " +
                 "Otherwise you should wait for someone inviting you.");
         // add listener
         textArea.addKeyListener(new KeyListener() {
-            // todo research into the logic of these parts to see where to put code
             @Override
             public void keyTyped(KeyEvent e) {
                 int pos = textArea.getCaretPosition();
                 char c = e.getKeyChar();
                 if (c == '\b') {
                     LocalSender.sendOTMsg(pos);
+                } else if (c == '\n') {
+                    LocalSender.sendOTMsg(pos - 1, c);
                 } else {
                     LocalSender.sendOTMsg(pos, c);
                 }
@@ -82,30 +84,16 @@ public class MainFrame {
                 // the state of text changes
                 if (!textArea.getText().equals(dispArea.getText()))
                     refreshDispArea();
-
-
             }
         });
     }
 
+
     public void setText(String str) {
         textArea.setText(str);
-        refreshDispArea();
     }
 
 
-    public void updateTextArea(Op op) {
-        StringBuilder builder = new StringBuilder(textArea.getText());
-        System.out.println(textArea.getText());
-        if (op.getOpType() == OpType.INSERT_CHAR) {
-            Insertion in = (Insertion) op;
-            builder.insert(in.getPos(), in.getC());
-        } else {
-            Deletion del = (Deletion) op;
-            builder.delete(del.getPos(), del.getPos() + 1);
-        }
-        textArea.setText(builder.toString());
-    }
     private void initDispArea() {
         dispArea.setBackground(Color.WHITE);
         // set the background opaque
@@ -123,7 +111,7 @@ public class MainFrame {
                     JOptionPane.showMessageDialog(frame, "You have already been involved in a document!");
                     return;
                 }
-                OT.init(0, "");
+                OT.init(0, "", textArea);
                 LocalInfo.setPeerStatus(PeerStatus.STARTER);
                 textArea.setEditable(true);
                 textArea.setText("");
@@ -149,9 +137,8 @@ public class MainFrame {
                     String content = Utilities.readFile(path);
                     textArea.setText(content);
                     refreshDispArea();
-                    OT.init(0, content);
+                    OT.init(0, content, textArea);
                 } catch (FileNotExistException exception) {
-                    // TODO add into log window
                     appendLog(exception.toString());
                     exception.printStackTrace();
                 }
@@ -317,6 +304,11 @@ public class MainFrame {
             }
         };
     }
+
+    public JTextArea getTextArea() {
+        return textArea;
+    }
+
 
     private void initControlArea() {
         controlArea.setLayout(new GridBagLayout());

@@ -2,11 +2,9 @@ package ot_char;
 
 import com.chao.dcme.ot_char.*;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.List;
+import javax.swing.*;
 
 import static org.junit.Assert.assertEquals;
 
@@ -35,6 +33,8 @@ public class OTTest {
     Op op3 = new Deletion(v3, 5);
     Op op4 = new Deletion(v4, 6);
 
+    JTextArea textArea = new JTextArea("ABCDEFGH");
+
     @Before
     public void init() {
         v1.addOne(0);
@@ -48,8 +48,9 @@ public class OTTest {
 
     @Test
     public void GOT() {
+
         // site 0, no need undo and redo, just GOT
-        OT.init(0, "ABCDEFGH");
+        OT.init(0, "ABCDEFGH", textArea);
         Op newOp = OT.GOT(op1);
         OT.apply(newOp);
         assertEquals("[GOT]Test for op1", ((Deletion) newOp).getPos(), 2);
@@ -65,21 +66,21 @@ public class OTTest {
         newOp = OT.GOT(op3);
         OT.apply(newOp);
         assertEquals("[GOT]Test for op3", newOp, null);
-        assertEquals("[GOT]Test for Final Result", OT.getText(), "ABDaEGH");
+        assertEquals("[GOT]Test for Final Result", textArea.getText(), "ABDaEGH");
     }
 
     @Test
     public void transform() {
         // site 1, test transform
-        OT.init(1, "ABCDEFGH");
+        OT.init(1, "ABCDEFGH", textArea);
         OT.transform(op2);
-        assertEquals("[Transform]Test for op2", OT.getText(), "ABCDaEFGH");
+        assertEquals("[Transform]Test for op2", textArea.getText(), "ABCDaEFGH");
         OT.transform(op1);
-        assertEquals("[Transform]Test for op1", OT.getText(), "ABDaEFGH");
+        assertEquals("[Transform]Test for op1", textArea.getText(), "ABDaEFGH");
         OT.transform(op3);
-        assertEquals("[Transform]Test for op3", OT.getText(), "ABDaEGH");
+        assertEquals("[Transform]Test for op3", textArea.getText(), "ABDaEGH");
         OT.transform(op4);
-        assertEquals("[Transform]Test for op4", OT.getText(), "ABDaEGH");
+        assertEquals("[Transform]Test for op4", textArea.getText(), "ABDaEGH");
     }
 
 

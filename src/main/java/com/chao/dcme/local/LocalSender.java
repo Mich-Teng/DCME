@@ -31,7 +31,7 @@ public class LocalSender {
         OT.updateStateVec(OT.getId());
         // add to our OT base
         Deletion deletion = new Deletion(OT.getStateVector(), pos);
-        OT.apply(deletion);
+        //OT.apply(deletion);
         OT.addIntoBuffer(deletion);
         // prepare to send to other peers
         Object[] arr = new Object[3];
@@ -45,7 +45,7 @@ public class LocalSender {
     public static void sendOTMsg(int pos, char c) {
         OT.updateStateVec(OT.getId());
         Insertion insertion = new Insertion(OT.getStateVector(), pos, c);
-        OT.apply(insertion);
+        //OT.apply(insertion);
         OT.addIntoBuffer(insertion);
         Object[] arr = new Object[3];
         arr[0] = OT.getStateVector();

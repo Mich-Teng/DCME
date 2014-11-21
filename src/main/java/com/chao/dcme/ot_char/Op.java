@@ -1,6 +1,8 @@
 package com.chao.dcme.ot_char;
 
 
+import java.io.Serializable;
+
 /**
  * ***************************************************************
  * Author: Chao Teng
@@ -11,7 +13,7 @@ package com.chao.dcme.ot_char;
  * ****************************************************************
  */
 
-public class Op {
+public class Op implements Serializable {
     StateVector stateVec = null;
 
 

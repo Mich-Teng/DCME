@@ -31,16 +31,18 @@ public class OTHandler implements Handler {
         } else {
             op = new Deletion((StateVector) arr[0], (Integer) arr[1]);
         }
+        frame.appendLog(op.toString() + " from " + map.get("Origin"));
         if (OT.isCausallyReady(op)) {
             OT.transform(op);
-            frame.appendLog(op.toString() + " from " + map.get("Origin"));
+            OT.updateStateVec(op.getStateVec().getId());
             // apply it in current doc
             OT.checkPendingBuffer();
-            frame.setText(OT.getText());
+
             frame.refreshDispArea();
         } else {
             // store in the buffer
             OT.addIntoPendingBuffer(op);
+            System.out.println("Store in Buffer");
         }
 
     }
